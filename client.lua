@@ -7,6 +7,7 @@ wheeledit = false
 isbusy = false
 carcontrol = false
 veh_stats = {}
+
 local vehiclesinarea = {}
 
 RegisterNetEvent("renzu_stancer:airsuspension")
@@ -446,18 +447,26 @@ function Notify(msg)
 	DrawNotification(0,1)
 end
 
+--------------------------------------------------------------
+-- Stancer Kit + Mechanic Required Section
+--------------------------------------------------------------
+
 function OpenStancer()
 	vehicle = getveh()
 	local ent = Entity(vehicle).state
-	if Config.Framework == 'Standalone' and not ent.stancer then
-		TriggerServerEvent('renzu_stancer:addstancer')
-		while not ent.stancer do Wait(1) end
-	end
+	-----------------------------------
+	-- Job required part
+	-----------------------------------
+	local player = QBcore.functions.GetPlayerData()
+	local jobTitle = QBCore.Funtions.job.name
+	local onDuty = player.job.onduty
+    local grade = player.job.grade.level
+
 	if busy or not ent.stancer then Notify('No Stancer Kit Install') return end
 	local cache = ent.stancer
 	isbusy = true
 	vehicle  = getveh()
-	if vehicle  ~= 0 and #(GetEntityCoords(PlayerPedId()) - GetEntityCoords(vehicle )) < 15 and GetVehicleDoorLockStatus(vehicle ) == 1 then
+	if vehicle  ~= 0 and #(GetEntityCoords(PlayerPedId()) - GetEntityCoords(vehicle )) < 15 and GetVehicleDoorLockStatus(vehicle ) == 1 and jobTitle == 'mechanic' and onDuty then
 		carcontrol = not carcontrol
 		cache.wheeledit = carcontrol
 		ent:set('stancer', cache, true)

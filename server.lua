@@ -98,7 +98,7 @@ Citizen.CreateThread(function()
           print("Inserting "..stancername)
         end
       end
-    end
+    endstancer
   end
 
   while ESX and QBCore == nil do Wait(10) print(ESX,QBCore) end

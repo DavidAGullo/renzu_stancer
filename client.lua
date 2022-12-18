@@ -457,8 +457,9 @@ function OpenStancer()
 	-----------------------------------
 	-- Job required part
 	-----------------------------------
-	local player = QBcore.functions.GetPlayerData()
-	local jobTitle = QBCore.Funtions.job.name
+	QBCore = exports['qb-core']:GetCoreObject()
+	local player = QBCore.Functions.GetPlayerData()
+	local jobTitle = player.job.name
 	local onDuty = player.job.onduty
     local grade = player.job.grade.level
 
@@ -466,32 +467,40 @@ function OpenStancer()
 	local cache = ent.stancer
 	isbusy = true
 	vehicle  = getveh()
-	if vehicle  ~= 0 and #(GetEntityCoords(PlayerPedId()) - GetEntityCoords(vehicle )) < 15 and GetVehicleDoorLockStatus(vehicle ) == 1 and jobTitle == 'mechanic' and onDuty then
-		carcontrol = not carcontrol
-		cache.wheeledit = carcontrol
-		ent:set('stancer', cache, true)
-		local offset = {}
-		local rotation = {}
-		for i=0, 4 do
-			offset[i] = GetVehicleWheelXOffset(vehicle,i)
-			rotation[i] = GetVehicleWheelYRotation(vehicle,i)
-		end
-		SendNUIMessage({
-			type = "show",
-			content = {bool = carcontrol, offset = offset, rotation = rotation, height = ent.stancer.heightdata}
-		})
-		Wait(500)
-		SetNuiFocus(carcontrol,carcontrol)
-		SetNuiFocusKeepInput(true)
-		isbusy = false
-		CreateThread(function()
-			while carcontrol do
-				whileinput()
-				Wait(5)
+	if vehicle  ~= 0 and #(GetEntityCoords(PlayerPedId()) - GetEntityCoords(vehicle )) < 15 and GetVehicleDoorLockStatus(vehicle ) == 1 then
+		if jobTitle == 'mechanic' and onDuty == true then
+			if grade >= Config.MinGrade then
+				carcontrol = not carcontrol
+				cache.wheeledit = carcontrol
+				ent:set('stancer', cache, true)
+				local offset = {}
+				local rotation = {}
+				for i=0, 4 do
+					offset[i] = GetVehicleWheelXOffset(vehicle,i)
+					rotation[i] = GetVehicleWheelYRotation(vehicle,i)
+				end
+				SendNUIMessage({
+					type = "show",
+					content = {bool = carcontrol, offset = offset, rotation = rotation, height = ent.stancer.heightdata}
+				})
+				Wait(500)
+				SetNuiFocus(carcontrol,carcontrol)
+				SetNuiFocusKeepInput(true)
+				isbusy = false
+				CreateThread(function()
+					while carcontrol do
+						whileinput()
+						Wait(5)
+					end
+					SetNuiFocusKeepInput(false)
+					return
+				end)
+			else 
+				Notify("You aren't knowledgable enough to understand how.")
 			end
-			SetNuiFocusKeepInput(false)
-			return
-		end)
+		else
+			Notify("You are not a Mechanic or you are off duty.")
+		end
 	else
 		if GetVehicleDoorLockStatus(vehicle ) ~= 1 then
 			Notify("No Unlock Vehicle Nearby")
